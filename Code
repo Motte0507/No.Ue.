@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anlageformen</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f7fb;
+    color: #172033;
+}
+
+header {
+    background: linear-gradient(135deg, #0b3d91, #1769d1);
+    color: white;
+    padding: 45px 20px;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0 0 10px;
+    font-size: 42px;
+}
+
+header p {
+    margin: 0;
+    font-size: 18px;
+    opacity: 0.9;
+}
+
+.controls {
+    max-width: 1200px;
+    margin: 25px auto;
+    padding: 0 20px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+input, select {
+    padding: 13px 15px;
+    border: 1px solid #ccd5e3;
+    border-radius: 10px;
+    font-size: 15px;
+    background: white;
+}
+
+input {
+    flex: 1;
+    min-width: 220px;
+}
+
+select {
+    min-width: 180px;
+}
+
+.grid {
+    max-width: 1200px;
+    margin: 30px auto 60px;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: 0.2s;
+    border: 1px solid #e5eaf1;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.13);
+}
+
+.card h2 {
+    margin-top: 0;
+    color: #0b3d91;
+}
+
+.badge {
+    display: inline-block;
+    background: #e8f0ff;
+    color: #0b3d91;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+
+.stars {
+    color: #f5b400;
+    letter-spacing: 2px;
+}
+
+.rating {
+    margin-top: 12px;
+    font-size: 14px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.modal-content {
+    max-width: 700px;
+    margin: 60px auto;
+    background: white;
+    border-radius: 18px;
+    padding: 30px;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    right: 22px;
+    top: 15px;
+    font-size: 30px;
+    cursor: pointer;
+    color: #555;
+}
+
+.modal h2 {
+    color: #0b3d91;
+}
+
+.pros {
+    color: #16833b;
+}
+
+.cons {
+    color: #c62828;
+}
+
+footer {
+    text-align: center;
+    padding: 30px 20px;
+    background: #172033;
+    color: white;
+    font-size: 13px;
+}
+
+@media (max-width: 600px) {
+    header h1 {
+        font-size: 32px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>Anlageformen</h1>
+    <p>Ein Überblick über verschiedene Möglichkeiten der Geldanlage</p>
+</header>
+
+<div class="controls">
+    <input type="text" id="search" placeholder="Anlageform suchen...">
+
+    <select id="category">
+        <option value="all">Alle Kategorien</option>
+        <option value="index">Indizes</option>
+        <option value="fund">Fonds & Themen</option>
+        <option value="other">Weitere Anlageformen</option>
+    </select>
+
+    <select id="sort">
+        <option value="none">Sortieren</option>
+        <option value="return">Rendite</option>
+        <option value="safety">Sicherheit</option>
+        <option value="availability">Verfügbarkeit</option>
+    </select>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">×</span>
+        <div id="modalContent"></div>
+    </div>
+</div>
+
+<footer>
+    Die Bewertungen dienen nur zur vereinfachten Orientierung und stellen keine Anlageberatung dar.
+</footer>
+
+<script>
+
+const investments = [
+
+{
+name: "DAX",
+category: "index",
+type: "Index",
+description: "Der DAX bildet die Entwicklung der wichtigsten börsennotierten Unternehmen Deutschlands ab. Er umfasst die 40 größten Unternehmen des deutschen Aktienmarktes.",
+pros: ["Bekannter deutscher Leitindex", "Breite Streuung über viele Unternehmen"],
+cons: ["Abhängig von der Entwicklung des deutschen Aktienmarktes", "Kursschwankungen möglich"],
+return: 4,
+safety: 3,
+availability: 5
+},
+
+{
+name: "MDAX",
+category: "index",
+type: "Index",
+description: "Der MDAX bildet mittelgroße deutsche Unternehmen ab. Er ergänzt damit den DAX um weitere bedeutende Unternehmen.",
+pros: ["Diversifikation", "Chance auf höhere Wachstumsraten"],
+cons: ["Höhere Schwankungen als beim DAX", "Unternehmen sind kleiner"],
+return: 4,
+safety: 3,
+availability: 5
+},
+
+{
+name: "SDAX",
+category: "index",
+type: "Index",
+description: "Der SDAX enthält kleinere börsennotierte Unternehmen aus Deutschland. Er bietet Zugang zu sogenannten Small Caps.",
+pros: ["Wachstumsmöglichkeiten", "Viele verschiedene Unternehmen"],
+cons: ["Höhere Kursschwankungen", "Größeres Risiko"],
+return: 4,
+safety: 2,
+availability: 5
+},
+
+{
+name: "TecDAX",
+category: "index",
+type: "Index",
+description: "Der TecDAX konzentriert sich auf große deutsche Technologieunternehmen. Dadurch liegt der Schwerpunkt auf technologiebezogenen Firmen.",
+pros: ["Technologiebranche", "Wachstumspotenzial"],
+cons: ["Stärker von Technologie abhängig", "Teilweise hohe Schwankungen"],
+return: 4,
+safety: 2,
+availability: 5
+},
+
+{
+name: "Euro Stoxx 50",
+category: "index",
+type: "Index",
+description: "Der Euro Stoxx 50 umfasst 50 große Unternehmen aus Ländern des Euroraums. Er ermöglicht eine breite Streuung innerhalb Europas.",
+pros: ["Europäische Streuung", "Viele große Unternehmen"],
+cons: ["Abhängigkeit von der europäischen Wirtschaft", "Aktienrisiko"],
+return: 4,
+safety: 3,
+availability: 5
+},
+
+{
+name: "Dow Jones",
+category: "index",
+type: "Index",
+description: "Der Dow Jones Industrial Average ist einer der bekanntesten Aktienindizes der USA. Er enthält große US-amerikanische Unternehmen.",
+pros: ["Sehr bekannter Index", "Große Unternehmen"],
+cons: ["Nur wenige Unternehmen im Vergleich zu anderen Indizes", "US-Marktrisiko"],
+return: 4,
+safety: 3,
+availability: 5
+},
+
+{
+name: "Nasdaq 100",
+category: "index",
+type: "Index",
+description: "Der Nasdaq 100 umfasst große nicht-finanzielle Unternehmen der Nasdaq. Besonders stark vertreten sind Technologie- und Wachstumsunternehmen.",
+pros: ["Hohe Wachstumschancen", "Starke Technologieunternehmen"],
+cons: ["Teilweise starke Schwankungen", "Hohe Technologiegewichtung"],
+return: 5,
+safety: 2,
+availability: 5
+},
+
+{
+name: "FTSE MIB",
+category: "index",
+type: "Index",
+description: "Der FTSE MIB ist der wichtigste Aktienindex Italiens. Er umfasst die größten und meistgehandelten italienischen Unternehmen.",
+pros: ["Italienischer Aktienmarkt", "Streuung über mehrere Unternehmen"],
+cons: ["Stärker von Italien abhängig", "Aktienrisiko"],
+return: 4,
+safety: 2,
+availability: 5
+},
+
+{
+name: "ATX",
+category: "index",
+type: "Index",
+description: "Der ATX ist der wichtigste Aktienindex Österreichs. Er umfasst die größten börsennotierten Unternehmen Österreichs.",
+pros: ["Österreichischer Markt", "Diversifikation"],
+cons: ["Kleiner Markt", "Höhere Abhängigkeit von einzelnen Unternehmen"],
+return: 3,
+safety: 3,
+availability: 5
+},
+
+{
+name: "LuxX",
+category: "index",
+type: "Index",
+description: "Der LuxX ist der wichtigste Aktienindex Luxemburgs. Er bildet die Entwicklung ausgewählter Unternehmen des luxemburgischen Aktienmarktes ab.",
+pros: ["Zugang zum luxemburgischen Markt", "Diversifikation"],
+cons: ["Sehr kleiner Markt", "Weniger bekannte Unternehmen"],
+return: 3,
+safety: 3,
+availability: 4
+},
+
+{
+name: "Global Challenges Index",
+category: "fund",
+type: "Nachhaltiger Index",
+description: "Der Global Challenges Index konzentriert sich auf Unternehmen, die einen Beitrag zur nachhaltigen Entwicklung leisten. Dabei werden ökologische und soziale Kriterien berücksichtigt.",
+pros: ["Nachhaltiger Schwerpunkt", "Auswahl nach bestimmten Kriterien"],
+cons: ["Begrenzte Auswahl an Unternehmen", "Aktienrisiko"],
+return: 4,
+safety: 3,
+availability: 5
+},
+
+{
+name: "Deka-Fonds",
+category: "fund",
+type: "Fonds",
+description: "Deka-Fonds bündeln verschiedene Wertpapiere und werden von der Fondsgesellschaft Deka verwaltet. Je nach Fonds können Aktien, Anleihen oder andere Anlagen enthalten sein.",
+pros: ["Professionelle Verwaltung", "Diversifikation"],
+cons: ["Kosten können entstehen", "Wertentwicklung nicht garantiert"],
+return: 4,
+safety: 3,
+availability: 4
+},
+
+{
+name: "Sustainable",
+category: "fund",
+type: "Nachhaltige Anlage",
+description: "Nachhaltige Anlagen berücksichtigen neben finanziellen Kriterien auch ökologische, soziale und teilweise ethische Aspekte.",
+pros: ["Nachhaltiger Fokus", "Berücksichtigung von ESG-Kriterien"],
+cons: ["Nicht jede nachhaltige Anlage ist gleich", "Auswahl kann eingeschränkt sein"],
+return: 4,
+safety: 3,
+availability: 4
+},
+
+{
+name: "Selection Europe",
+category: "fund",
+type: "Fonds/Anlagekonzept",
+description: "Selection Europe konzentriert sich auf ausgewählte europäische Unternehmen. Ziel ist es, gezielt in interessante Unternehmen des europäischen Marktes zu investieren.",
+pros: ["Europäische Streuung", "Auswahl bestimmter Unternehmen"],
+cons: ["Europäisches Marktrisiko", "Kursschwankungen"],
+return: 4,
+safety: 3,
+availability: 4
+},
+
+{
+name: "Zertifikate",
+category: "other",
+type: "Anlageform",
+description: "Zertifikate sind Wertpapiere, deren Wert von einem Basiswert wie Aktien, Indizes oder Rohstoffen abhängen kann. Sie können sehr unterschiedlich ausgestaltet sein.",
+pros: ["Viele verschiedene Varianten", "Gezielte Anlagestrategien möglich"],
+cons: ["Komplexer als einfache Aktien", "Emittentenrisiko"],
+return: 4,
+safety: 2,
+availability: 5
+},
+
+{
+name: "Krypto",
+category: "other",
+type: "Digitale Vermögenswerte",
+description: "Kryptowährungen sind digitale Vermögenswerte, die meist auf Blockchain-Technologie basieren. Ihre Preise können sich innerhalb kurzer Zeit stark verändern.",
+pros: ["Hohe mögliche Wertsteigerungen", "Neue Technologie"],
+cons: ["Sehr hohe Schwankungen", "Hohes Verlustrisiko"],
+return: 5,
+safety: 1,
+availability: 5
+},
+
+{
+name: "ETC",
+category: "other",
+type: "Exchange Traded Commodity",
+description: "ETCs ermöglichen die Anlage in Rohstoffe oder andere einzelne Vermögenswerte. Sie werden ähnlich wie Aktien an der Börse gehandelt.",
+pros: ["Einfacher Börsenhandel", "Zugang zu Rohstoffen"],
+cons: ["Abhängigkeit vom jeweiligen Rohstoff", "Risiken durch Kursbewegungen"],
+return: 3,
+safety: 2,
+availability: 5
+},
+
+{
+name: "Anleihen",
+category: "other",
+type: "Festverzinsliche Anlage",
+description: "Bei Anleihen leiht der Anleger einem Staat oder Unternehmen Geld und erhält dafür in der Regel Zinsen. Am Ende der Laufzeit wird der Nennwert zurückgezahlt, sofern der Schuldner zahlungsfähig ist.",
+pros: ["Regelmäßige Zinszahlungen möglich", "Oft planbarer als Aktien"],
+cons: ["Ausfallrisiko", "Zinsänderungsrisiko"],
+return: 3,
+safety: 4,
+availability: 4
+}
+
+];
+
+function stars(value) {
+    return "★".repeat(value) + "☆".repeat(5 - value);
+}
+
+function render() {
+
+    const grid = document.getElementById("grid");
+    const search = document.getElementById("search").value.toLowerCase();
+    const category = document.getElementById("category").value;
+    const sort = document.getElementById("sort").value;
+
+    let filtered = investments.filter(item => {
+
+        const matchesSearch =
+            item.name.toLowerCase().includes(search) ||
+            item.type.toLowerCase().includes(search);
+
+        const matchesCategory =
+            category === "all" || item.category === category;
+
+        return matchesSearch && matchesCategory;
+    });
+
+    if (sort !== "none") {
+        filtered.sort((a,b) => b[sort] - a[sort]);
+    }
+
+    grid.innerHTML = "";
+
+    filtered.forEach((item, index) => {
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+            <span class="badge">${item.type}</span>
+            <h2>${item.name}</h2>
+
+            <div class="rating">
+                Rendite:
+                <span class="stars">${stars(item.return)}</span>
+            </div>
+
+            <div class="rating">
+                Sicherheit:
+                <span class="stars">${stars(item.safety)}</span>
+            </div>
+
+            <div class="rating">
+                Verfügbarkeit:
+                <span class="stars">${stars(item.availability)}</span>
+            </div>
+        `;
+
+        card.onclick = () => openModal(item);
+
+        grid.appendChild(card);
+    });
+}
+
+function openModal(item) {
+
+    const modal = document.getElementById("modal");
+    const content = document.getElementById("modalContent");
+
+    content.innerHTML = `
+        <span class="badge">${item.type}</span>
+
+        <h2>${item.name}</h2>
+
+        <p>${item.description}</p>
+
+        <h3 class="pros">Vorteile</h3>
+        <ul>
+            ${item.pros.map(x => `<li>${x}</li>`).join("")}
+        </ul>
+
+        <h3 class="cons">Nachteile</h3>
+        <ul>
+            ${item.cons.map(x => `<li>${x}</li>`).join("")}
+        </ul>
+
+        <h3>Bewertung</h3>
+
+        <p>
+            Rendite:
+            <span class="stars">${stars(item.return)}</span>
+        </p>
+
+        <p>
+            Sicherheit:
+            <span class="stars">${stars(item.safety)}</span>
+        </p>
+
+        <p>
+            Verfügbarkeit:
+            <span class="stars">${stars(item.availability)}</span>
+        </p>
+    `;
+
+    modal.style.display = "block";
+}
+
+function closeModal() {
+    document.getElementById("modal").style.display = "none";
+}
+
+window.onclick = function(event) {
+
+    const modal = document.getElementById("modal");
+
+    if (event.target === modal) {
+        closeModal();
+    }
+};
+
+document.getElementById("search").addEventListener("input", render);
+document.getElementById("category").addEventListener("change", render);
+document.getElementById("sort").addEventListener("change", render);
+
+render();
+
+</script>
+
+</body>
+</html>
